@@ -1,0 +1,15 @@
+# SMARTBIOFIT - Upload Security
+Options -Indexes
+<FilesMatch "\.(php|phtml|php3|php4|php5|pl|py|jsp|asp|sh|cgi)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Allow specific file types
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|mp4|webm|ogg|mov|avi)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Set max file size
+LimitRequestBody 52428800

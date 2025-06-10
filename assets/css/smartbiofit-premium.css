@@ -1,0 +1,245 @@
+/* 
+ * SMARTBIOFIT PREMIUM DASHBOARD - Mobile-First Design
+ * Paleta de cores específica: Azul Cobalto, Cinza Neutro, Branco, Verde Saúde
+ */
+
+:root {
+    /* SmartBioFit Premium Colors */
+    --smartbiofit-azul-cobalto: #0047AB;
+    --smartbiofit-azul-cobalto-light: #1E5FBF;
+    --smartbiofit-azul-cobalto-dark: #003D99;
+    --smartbiofit-cinza-neutro: #6B7280;
+    --smartbiofit-cinza-neutro-light: #9CA3AF;
+    --smartbiofit-cinza-neutro-dark: #4B5563;
+    --smartbiofit-branco: #FFFFFF;
+    --smartbiofit-verde-saude: #10B981;
+    --smartbiofit-verde-saude-light: #34D399;
+    --smartbiofit-verde-saude-dark: #059669;
+    
+    /* Gradient combinations */
+    --smartbiofit-gradient-primary: linear-gradient(135deg, var(--smartbiofit-azul-cobalto) 0%, var(--smartbiofit-verde-saude) 100%);
+    --smartbiofit-gradient-card: linear-gradient(135deg, rgba(0, 71, 171, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+    
+    /* Shadows */
+    --smartbiofit-shadow-card: 0 4px 6px -1px rgba(0, 71, 171, 0.1), 0 2px 4px -1px rgba(0, 71, 171, 0.06);
+    --smartbiofit-shadow-card-hover: 0 10px 15px -3px rgba(0, 71, 171, 0.1), 0 4px 6px -2px rgba(0, 71, 171, 0.05);
+    --smartbiofit-shadow-mobile-nav: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Premium Typography */
+.smartbiofit-font-display {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.smartbiofit-font-body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+/* Custom Utilities for SmartBioFit Premium */
+.bg-smartbiofit-primary {
+    background: var(--smartbiofit-gradient-primary);
+}
+
+.text-smartbiofit-azul {
+    color: var(--smartbiofit-azul-cobalto);
+}
+
+.text-smartbiofit-verde {
+    color: var(--smartbiofit-verde-saude);
+}
+
+.border-smartbiofit-azul {
+    border-color: var(--smartbiofit-azul-cobalto);
+}
+
+/* Premium Card Styles */
+.smartbiofit-card {
+    background: var(--smartbiofit-branco);
+    border-radius: 16px;
+    box-shadow: var(--smartbiofit-shadow-card);
+    border: 1px solid rgba(107, 114, 128, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smartbiofit-card:hover {
+    box-shadow: var(--smartbiofit-shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+.smartbiofit-card-gradient {
+    background: var(--smartbiofit-gradient-card);
+}
+
+/* Premium Button Styles */
+.smartbiofit-btn-primary {
+    background: var(--smartbiofit-gradient-primary);
+    color: var(--smartbiofit-branco);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 14px 0 rgba(0, 71, 171, 0.3);
+}
+
+.smartbiofit-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(0, 71, 171, 0.4);
+}
+
+/* Mobile-First Responsive Design */
+@media (max-width: 1023px) {
+    /* Mobile optimizations */
+    .smartbiofit-mobile-header {
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.95);
+        border-bottom: 1px solid rgba(107, 114, 128, 0.1);
+    }
+    
+    .smartbiofit-mobile-nav {
+        background: var(--smartbiofit-branco);
+        box-shadow: var(--smartbiofit-shadow-mobile-nav);
+        backdrop-filter: blur(20px);
+    }
+    
+    .smartbiofit-mobile-nav-item {
+        transition: all 0.2s ease;
+    }
+    
+    .smartbiofit-mobile-nav-item:hover,
+    .smartbiofit-mobile-nav-item.active {
+        background: rgba(0, 71, 171, 0.1);
+        color: var(--smartbiofit-azul-cobalto);
+    }
+    
+    /* Mobile card adjustments */
+    .smartbiofit-card {
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+    
+    /* Touch-friendly buttons */
+    .smartbiofit-btn-primary {
+        min-height: 44px;
+        padding: 14px 20px;
+    }
+}
+
+/* Premium Animations */
+@keyframes smartbiofit-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes smartbiofit-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.smartbiofit-animate-fade-in-up {
+    animation: smartbiofit-fade-in-up 0.6s ease-out;
+}
+
+.smartbiofit-animate-scale-in {
+    animation: smartbiofit-scale-in 0.4s ease-out;
+}
+
+/* Premium Loading States */
+.smartbiofit-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.smartbiofit-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 71, 171, 0.1),
+        transparent
+    );
+    animation: smartbiofit-shimmer 1.5s infinite;
+}
+
+@keyframes smartbiofit-shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Dark mode support (future enhancement) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --smartbiofit-branco: #1F2937;
+        --smartbiofit-cinza-neutro: #9CA3AF;
+        --smartbiofit-cinza-neutro-dark: #D1D5DB;
+    }
+    
+    .smartbiofit-card {
+        background: var(--smartbiofit-branco);
+        border-color: rgba(75, 85, 99, 0.2);
+    }
+    
+    .smartbiofit-mobile-header {
+        background: rgba(31, 41, 55, 0.95);
+        border-bottom-color: rgba(75, 85, 99, 0.2);
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .smartbiofit-card,
+    .smartbiofit-btn-primary,
+    .smartbiofit-mobile-nav-item {
+        transition: none;
+    }
+    
+    .smartbiofit-animate-fade-in-up,
+    .smartbiofit-animate-scale-in {
+        animation: none;
+    }
+}
+
+/* Focus states for accessibility */
+.smartbiofit-btn-primary:focus,
+.smartbiofit-card:focus-within {
+    outline: 2px solid var(--smartbiofit-azul-cobalto);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .smartbiofit-mobile-nav,
+    .smartbiofit-mobile-header {
+        display: none;
+    }
+    
+    .smartbiofit-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}

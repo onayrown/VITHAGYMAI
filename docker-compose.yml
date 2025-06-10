@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Serviço PHP/Apache
+  web:
+    build: .
+    container_name: smartbiofit_web
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=${APP_DEBUG}
+      - APP_URL=http://localhost:8080
+      - JWT_SECRET=${JWT_SECRET}
+      - CACHE_ENABLED=${CACHE_ENABLED}
+      - APP_TIMEZONE=${APP_TIMEZONE}
+    networks:
+      - smartbiofit_network
+    restart: unless-stopped
+
+  # Serviço MySQL
+  db:
+    image: mysql:8.0
+    container_name: smartbiofit_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - smartbiofit_network
+
+  # phpMyAdmin (opcional, para gerenciar o banco)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: smartbiofit_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - smartbiofit_network
+
+volumes:
+  db_data:
+
+networks:
+  smartbiofit_network:
+    driver: bridge

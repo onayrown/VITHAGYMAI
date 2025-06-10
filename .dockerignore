@@ -1,0 +1,47 @@
+# SMARTBIOFIT - Docker Ignore
+
+# Git
+.git
+.gitignore
+README.md
+
+# Documentation
+docs/
+*.md
+
+# Logs (serão criados no container)
+logs/
+*.log
+
+# Cache
+cache/
+temp/
+tmp/
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+*.sql
+
+# Environment files (exceto o que será usado)
+.env.production
+.env.local
+
+# Docker files (não precisam estar na imagem)
+docker-compose.yml
+docker-compose.override.yml
+Dockerfile

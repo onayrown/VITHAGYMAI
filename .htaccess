@@ -1,0 +1,115 @@
+# SMARTBIOFIT - Configurações do Servidor Web
+# Funciona para Apache (XAMPP)
+
+# Segurança geral
+ServerSignature Off
+Options -Indexes
+Options -MultiViews
+
+# Proteção de arquivos sensíveis
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "*.log">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<FilesMatch "\.(inc|conf|cnf|sql|bak|backup|old)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Headers de segurança
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # CSP definido via meta tag no HTML para maior flexibilidade
+</IfModule>
+
+# Compressão Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+# Cache para recursos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/ico "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 month"
+</IfModule>
+
+# Configurações PHP
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value max_input_vars 1000
+    php_value memory_limit 256M
+    php_flag session.cookie_httponly On
+    php_flag session.cookie_secure Off
+    php_flag session.use_strict_mode On
+    php_value session.gc_maxlifetime 1440
+</IfModule>
+
+# Redirecionamentos e URLs amigáveis
+RewriteEngine On
+
+# Redireciona para HTTPS (descomentei quando em produção)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Remove www (opcional)
+# RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+# RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+
+# Página inicial padrão
+DirectoryIndex index.php
+
+# URLs amigáveis para páginas
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^alunos/?$ pages/alunos.php [L]
+RewriteRule ^avaliacoes/?$ pages/avaliacoes.php [L]
+RewriteRule ^treinos/?$ pages/treinos.php [L]
+RewriteRule ^profile/?$ pages/profile.php [L]
+RewriteRule ^admin/?$ pages/admin.php [L]
+
+# API endpoints - removed problematic rewrite rule that was causing infinite redirects
+# RewriteRule ^api/(.*)$ api/$1.php [L]
+
+# Tratamento de erros
+ErrorDocument 404 /smartbiofit/pages/404.php
+ErrorDocument 403 /smartbiofit/pages/403.php
+ErrorDocument 500 /smartbiofit/pages/500.php
+
+# Previne acesso direto a arquivos PHP de configuração (commented out to debug)
+# <FilesMatch "(config|database|functions)\.php$">
+#     Order allow,deny
+#     Deny from all
+# </FilesMatch>
+
+# Permite acesso apenas aos arquivos necessários
+<FilesMatch "\.(php|html|css|js|png|jpg|jpeg|gif|svg|ico|pdf|woff|woff2|ttf|eot)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>

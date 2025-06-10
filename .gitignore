@@ -1,0 +1,76 @@
+# SMARTBIOFIT - Git Ignore
+
+# Arquivos de configuração e ambiente
+.env
+config.local.php
+
+# Logs
+logs/
+*.log
+
+# Uploads de usuários
+uploads/fotos/*
+uploads/videos/*
+uploads/documentos/*
+!uploads/fotos/.gitkeep
+!uploads/videos/.gitkeep
+!uploads/documentos/.gitkeep
+
+# Cache e temporários
+cache/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Backups de banco de dados
+*.sql
+*.db
+*.sqlite
+backup/
+
+# Arquivos do sistema operacional
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (se usar npm/yarn no futuro)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Composer (se usar)
+vendor/
+composer.lock
+
+# Certificados e chaves
+*.pem
+*.key
+*.crt
+*.p12
+
+# Arquivos específicos do projeto
+error_log
+php_errors.log
+access.log
+
+# Diretórios de desenvolvimento
+tests/
+docs/coverage/
+
+# Arquivos de configuração local
+.env.local
+.env.production
