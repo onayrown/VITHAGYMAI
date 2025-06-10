@@ -1,13 +1,13 @@
 <?php
 /**
- * SMARTBIOFIT - Script de Inicialização do Banco de Dados
+ * VithaGymAI - Script de Inicialização do Banco de Dados
  * Este script cria as tabelas automaticamente quando o container é iniciado
  */
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/database.php';
 
-echo "🚀 SMARTBIOFIT - Inicializando banco de dados...\n";
+echo "🚀 VithaGymAI - Inicializando banco de dados...\n";
 
 try {
     // Aguarda o MySQL estar pronto (máximo 30 segundos)
@@ -42,7 +42,7 @@ try {
     $db->createTables();
     
     echo "✅ Banco de dados inicializado com sucesso!\n";
-    echo "🔑 Usuário admin padrão: admin@smartbiofit.com / admin123\n";
+    echo "🔑 Usuário admin padrão: admin@vithagymai.com / admin123\n";
     echo "🌐 Acesse: http://localhost:8080\n";
     
 } catch (Exception $e) {

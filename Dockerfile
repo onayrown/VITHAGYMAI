@@ -55,10 +55,10 @@ RUN mkdir -p /var/www/html/logs \
 
 # Criar script de inicialização
 RUN echo '#!/bin/bash\n\
-echo "🚀 Iniciando SMARTBIOFIT..."\n\
+echo "🚀 Iniciando VithaGymAI..."\n\
 \n\
 # Aguarda o MySQL estar disponível\n\
-until php -r "try { new PDO(\"mysql:host=db;dbname=smartbiofit\", \"$DB_USER\", \"$DB_PASS\"); echo \"OK\"; } catch(Exception \$e) { exit(1); }" 2>/dev/null; do\n\
+until php -r "try { new PDO(\"mysql:host=db;dbname=vithagymai\", \"$DB_USER\", \"$DB_PASS\"); echo \"OK\"; } catch(Exception \$e) { exit(1); }" 2>/dev/null; do\n\
   echo "⏳ Aguardando MySQL..."\n\
   sleep 2\n\
 done\n\
@@ -68,11 +68,11 @@ php /var/www/html/init-database.php\n\
 \n\
 echo "🌐 Iniciando Apache..."\n\
 exec apache2-foreground\n\
-' > /usr/local/bin/start-smartbiofit.sh \
-    && chmod +x /usr/local/bin/start-smartbiofit.sh
+' > /usr/local/bin/start-vithagymai.sh \
+    && chmod +x /usr/local/bin/start-vithagymai.sh
 
 # Expor porta 80
 EXPOSE 80
 
 # Comando de inicialização
-CMD ["/usr/local/bin/start-smartbiofit.sh"]
+CMD ["/usr/local/bin/start-vithagymai.sh"]

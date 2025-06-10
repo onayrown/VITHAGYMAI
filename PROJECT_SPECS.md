@@ -1,8 +1,8 @@
-# 🏋️‍♂️ SMARTBIOFIT
+# 🏋️‍♂️ VithaGymAI - Project Specifications
 
-**Aplicativo Web de Avaliação Física Profissional**
+**Aplicativo Web de Avaliação Física Profissional com IA**
 
-Sistema desenvolvido para educadores físicos gerenciarem alunos, realizarem avaliações físicas completas e prescreverem treinos personalizados.
+Sistema desenvolvido para educadores físicos gerenciarem alunos, realizarem avaliações físicas completas e prescreverem treinos personalizados com auxílio de inteligência artificial.
 
 ## 🎯 Status do Projeto
 
@@ -45,9 +45,9 @@ Sistema desenvolvido para educadores físicos gerenciarem alunos, realizarem ava
 
 ## 🎯 Logo e Branding
 
-### Integração da Logo SMARTBIOFIT
-- **✅ Logo Principal**: Localizada em `/assets/images/logo-smartbiofit.png`
-- **✅ Navegação**: Logo + texto "SMARTBIOFIT" no header
+### Integração da Logo VithaGymAI
+- **✅ Logo Principal**: Localizada em `/assets/images/logo-vithagymai.png`
+- **✅ Navegação**: Logo + texto "VithaGymAI" no header
 - **✅ Responsividade**: 40px (desktop) / 32px (mobile)
 - **✅ Favicon**: Integrado em todas as páginas
 - **✅ Footer**: Logo reduzida no rodapé
@@ -55,42 +55,13 @@ Sistema desenvolvido para educadores físicos gerenciarem alunos, realizarem ava
 
 ### Arquivos da Logo
 ```
-assets/images/logo-smartbiofit.png  # Logo principal (364KB, PNG)
+assets/images/logo-vithagymai.png  # Logo principal
 ```
-
-## 📦 Instalação
-
-### Pré-requisitos
-
-- XAMPP (Apache + MySQL + PHP)
-- Navegador web moderno
-- Acesso à internet (para CDNs)
-
-### Passos de Instalação
-
-1. **Clone/Baixe o projeto** para `c:\xampp\htdocs\smartbiofit`
-
-2. **Configure o banco de dados**:
-   - Abra o phpMyAdmin (http://localhost/phpmyadmin)
-   - Crie um banco chamado `smartbiofit`
-   - Configure a codificação como `utf8mb4_unicode_ci`
-
-3. **Configure o ambiente**:
-   - Edite o arquivo `.env` com suas configurações
-   - Ajuste o `APP_URL` para seu IP local ou domínio
-
-4. **Execute o setup**:
-   - Acesse `http://SEU_IP/smartbiofit/setup.php`
-   - Execute a inicialização do banco de dados
-
-5. **Primeiro acesso**:
-   - Acesse `http://SEU_IP/smartbiofit/login.php`
-   - Use as credenciais: `admin@smartbiofit.com` / `admin123`
 
 ## 🏗️ Estrutura do Projeto
 
 ```
-smartbiofit/
+vithagymai/
 ├── 📁 assets/           # Recursos estáticos
 │   ├── 📁 css/         # Estilos CSS
 │   ├── 📁 js/          # Scripts JavaScript
@@ -181,8 +152,8 @@ smartbiofit/
 2. **Configure o Virtual Host** (opcional):
    ```apache
    <VirtualHost *:80>
-       DocumentRoot "c:/xampp/htdocs/smartbiofit"
-       ServerName smartbiofit.local
+       DocumentRoot "c:/xampp/htdocs/vithagymai"
+       ServerName vithagymai.local
    </VirtualHost>
    ```
 
@@ -245,7 +216,7 @@ O sistema está preparado para ser uma PWA:
 
 Para suporte e dúvidas:
 
-- **Email**: suporte@smartbiofit.com
+- **Email**: suporte@vithagymai.com
 - **Documentação**: Consulte os comentários no código
 - **Logs**: Verifique `logs/app.log` para erros detalhados
 
@@ -255,4 +226,4 @@ Este projeto é propriedade privada. Todos os direitos reservados.
 
 ---
 
-**SMARTBIOFIT v1.0** - Desenvolvido com ❤️ para profissionais de educação física
+**VithaGymAI v1.0** - Desenvolvido com ❤️ para profissionais de educação física
