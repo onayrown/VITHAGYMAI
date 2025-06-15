@@ -1,13 +1,38 @@
 <?php
 /**
- * SMARTBIOFIT - Página de Login
+ * VithaGymAI - Página de Login
+ * Sistema de autenticação principal
  */
+
+// CRÍTICO: Iniciar output buffering ANTES de qualquer coisa
+ob_start();
 
 require_once 'config.php';
 require_once 'database.php';
 
-// Se já estiver logado, redireciona para dashboard
+// Headers para evitar cache da página de login
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+header('ETag: "' . md5(time()) . '"');
+
+// Debug: Verificar se há sessão ativa
+if (APP_DEBUG) {
+    error_log("LOGIN DEBUG - Session user_id: " . ($_SESSION['user_id'] ?? 'NOT SET'));
+    error_log("LOGIN DEBUG - Session data: " . print_r($_SESSION, true));
+}
+
+// IMPORTANTE: Verificar redirecionamento ANTES de qualquer output
 if (isset($_SESSION['user_id'])) {
+    if (APP_DEBUG) {
+        error_log("LOGIN DEBUG - User already logged in, redirecting to dashboard");
+    }
+    
+    // Limpar qualquer output buffer antes do redirecionamento
+    ob_end_clean();
+    
+    // Redirecionamento direto sem qualquer output
     header('Location: ' . APP_URL . '/index.php');
     exit;
 }
@@ -17,41 +42,97 @@ $success = '';
 
 // Processa o login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (APP_DEBUG) {
+        error_log("LOGIN DEBUG - POST recebido");
+        error_log("LOGIN DEBUG - POST data: " . print_r($_POST, true));
+    }
+    
+    // CORREÇÃO: Parse manual dos dados POST se necessário
+    if (empty($_POST)) {
+        $rawInput = file_get_contents('php://input');
+        if (!empty($rawInput)) {
+            parse_str($rawInput, $parsedData);
+            $_POST = $parsedData;
+            
+            if (APP_DEBUG) {
+                error_log("LOGIN DEBUG - Raw input: " . $rawInput);
+                error_log("LOGIN DEBUG - Parsed data: " . print_r($parsedData, true));
+            }
+        }
+    }
+    
     $email = sanitizeInput($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
     
+    if (APP_DEBUG) {
+        error_log("LOGIN DEBUG - Email: $email");
+        error_log("LOGIN DEBUG - Senha length: " . strlen($senha));
+    }
+    
     if (empty($email) || empty($senha)) {
         $error = 'Por favor, preencha todos os campos.';
+        if (APP_DEBUG) {
+            error_log("LOGIN DEBUG - Campos vazios");
+        }
     } elseif (!validateEmail($email)) {
         $error = 'Email inválido.';
+        if (APP_DEBUG) {
+            error_log("LOGIN DEBUG - Email inválido: $email");
+        }
     } else {
         try {
+            if (APP_DEBUG) {
+                error_log("LOGIN DEBUG - Iniciando consulta ao banco");
+            }
+            
             $db = Database::getInstance();
             $user = $db->fetch("SELECT * FROM usuarios WHERE email = ? AND ativo = TRUE", [$email]);
             
+            if (APP_DEBUG) {
+                error_log("LOGIN DEBUG - Usuário encontrado: " . ($user ? 'SIM' : 'NÃO'));
+                if ($user) {
+                    error_log("LOGIN DEBUG - User ID: " . $user['id'] . ", Nome: " . $user['nome']);
+                }
+            }
+            
             if ($user && verifyPassword($senha, $user['senha'])) {
+                if (APP_DEBUG) {
+                    error_log("LOGIN DEBUG - Senha correta, criando sessão");
+                }
+                
                 // Login bem-sucedido
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['nome'];
                 $_SESSION['user_type'] = $user['tipo'];
                 $_SESSION['login_time'] = time();
                 
+                if (APP_DEBUG) {
+                    error_log("LOGIN DEBUG - Sessão criada: " . print_r($_SESSION, true));
+                }
+                
                 // Log do login
-                $db->execute("INSERT INTO logs (usuario_id, acao, descricao, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)", [
+                $db->execute("INSERT INTO logs (usuario_id, acao, descricao, ip_address) VALUES (?, ?, ?, ?)", [
                     $user['id'],
                     'login',
                     'Login realizado com sucesso',
-                    $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                    $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
                 ]);
                 
                 // Atualiza último acesso
                 $db->execute("UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = ?", [$user['id']]);
                 
-                // Redireciona baseado no tipo de usuário
+                if (APP_DEBUG) {
+                    error_log("LOGIN DEBUG - Preparando redirecionamento");
+                }
+                
+                // Limpar output buffer antes do redirecionamento
+                ob_end_clean();
+                
+                // Redireciona para o dashboard principal para TODOS os usuários
                 $redirectUrl = APP_URL . '/index.php';
-                if ($user['tipo'] === 'aluno') {
-                    $redirectUrl = APP_URL . '/pages/aluno-dashboard.php';
+                
+                if (APP_DEBUG) {
+                    error_log("LOGIN DEBUG - Redirecionando para: $redirectUrl");
                 }
                 
                 header('Location: ' . $redirectUrl);
@@ -59,20 +140,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Email ou senha incorretos.';
                 
+                if (APP_DEBUG) {
+                    if (!$user) {
+                        error_log("LOGIN DEBUG - Usuário não encontrado para email: $email");
+                    } else {
+                        error_log("LOGIN DEBUG - Senha incorreta para usuário: " . $user['nome']);
+                        error_log("LOGIN DEBUG - Hash no banco: " . substr($user['senha'], 0, 20) . "...");
+                        error_log("LOGIN DEBUG - Verificação: " . (verifyPassword($senha, $user['senha']) ? 'OK' : 'FALHOU'));
+                    }
+                }
+                
                 // Log da tentativa de login falhada
                 if ($user) {
-                    $db->execute("INSERT INTO logs (usuario_id, acao, descricao, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)", [
+                    $db->execute("INSERT INTO logs (usuario_id, acao, descricao, ip_address) VALUES (?, ?, ?, ?)", [
                         $user['id'],
                         'login_failed',
                         'Tentativa de login com senha incorreta',
-                        $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-                        $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+                        $_SERVER['REMOTE_ADDR'] ?? 'unknown'
                     ]);
                 }
             }
         } catch (Exception $e) {
             logError("Erro no login: " . $e->getMessage());
             $error = 'Erro interno. Tente novamente.';
+            
+            if (APP_DEBUG) {
+                error_log("LOGIN DEBUG - Exceção: " . $e->getMessage());
+                error_log("LOGIN DEBUG - Stack trace: " . $e->getTraceAsString());
+            }
         }
     }
 }
@@ -83,6 +178,7 @@ if (isset($_SESSION['success_message'])) {
     unset($_SESSION['success_message']);
 }
 
+// Só inclui o header se não estiver logado (evita output desnecessário)
 include 'includes/header.php';
 ?>
 
@@ -91,10 +187,10 @@ include 'includes/header.php';
     <div class="flex flex-col min-h-screen justify-center py-6 px-4 sm:px-6 lg:px-8">
         <div class="mx-auto w-full max-w-md">
             <!-- Logo e Título -->
-            <div class="text-center mb-8">
-                <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" class="mx-auto h-16 w-auto mb-4">
-                <h2 class="text-2xl font-bold text-gray-900">Entre na sua conta</h2>
-                <p class="mt-2 text-sm text-gray-600">Acesse o SMARTBIOFIT</p>
+            <div class="text-center mb-6">
+                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="mx-auto h-16 w-auto mb-4">
+                <h2 class="text-center text-3xl font-extrabold text-gray-900">Entrar</h2>
+                <p class="mt-2 text-sm text-gray-600">Acesse o VithaGymAI</p>
             </div>
 
             <!-- Card Principal -->
@@ -196,7 +292,7 @@ include 'includes/header.php';
                         <div class="ml-2">
                             <h3 class="text-sm font-medium text-yellow-800">Modo Desenvolvimento</h3>
                             <div class="mt-1 text-xs text-yellow-700">
-                                <p><strong>Admin:</strong> admin@smartbiofit.com / admin123</p>
+                                <p><strong>Admin:</strong> admin@vithagymai.com / admin123</p>
                                 <p>Crie usuários via painel admin após login</p>
                             </div>
                         </div>
@@ -211,7 +307,7 @@ include 'includes/header.php';
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
-                    <span>SMARTBIOFIT v1.0</span>
+                    <span>VithaGymAI v1.0</span>
                 </div>
                 <p class="text-xs text-gray-400 mt-1">Aplicativo de Avaliação Física Profissional</p>
             </div>
@@ -220,6 +316,64 @@ include 'includes/header.php';
 </div>
 
 <script>
+// SCRIPT DE LIMPEZA AGRESSIVA DE CACHE E SERVICE WORKER
+function aggressiveCleanup() {
+    console.log('VithaGymAI: Iniciando limpeza agressiva...');
+    let swUnregistered = false;
+    let cachesCleared = false;
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            if (registrations.length > 0) {
+                registrations.forEach(registration => {
+                    registration.unregister().then(unregistered => {
+                        if (unregistered) {
+                            console.log('VithaGymAI: Service Worker desregistrado com sucesso.');
+                            swUnregistered = true;
+                            // Se ambos terminaram, recarregue
+                            if (swUnregistered && cachesCleared) window.location.reload(true);
+                        }
+                    });
+                });
+            } else {
+                // Nenhum SW para desregistrar, prossiga
+                swUnregistered = true;
+            }
+        });
+    } else {
+        swUnregistered = true;
+    }
+
+    if (window.caches) {
+        caches.keys().then(cacheNames => {
+            if (cacheNames.length > 0) {
+                Promise.all(cacheNames.map(cacheName => {
+                    console.log(`VithaGymAI: Deletando cache: ${cacheName}`);
+                    return caches.delete(cacheName);
+                })).then(() => {
+                    console.log('VithaGymAI: Todos os caches foram limpos.');
+                    cachesCleared = true;
+                    // Se ambos terminaram, recarregue
+                    if (swUnregistered && cachesCleared) window.location.reload(true);
+                });
+            } else {
+                 // Nenhum cache para limpar, prossiga
+                cachesCleared = true;
+            }
+        });
+    } else {
+        cachesCleared = true;
+    }
+
+    // Se não houve nada para limpar, a página não irá recarregar, então o login pode prosseguir normalmente.
+}
+
+// Executar a limpeza uma única vez usando sessionStorage para controle
+if (!sessionStorage.getItem('vithagym_cleaned')) {
+    aggressiveCleanup();
+    sessionStorage.setItem('vithagym_cleaned', 'true');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Foco automático no email se estiver vazio
     const emailInput = document.getElementById('email');
@@ -260,6 +414,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 Entrando...
             </span>
         `;
+        
+        // O redirecionamento agora será puramente pelo lado do servidor,
+        // removendo o timeout do javascript que agia como band-aid
     });
 });
 

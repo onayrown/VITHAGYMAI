@@ -4,14 +4,14 @@
  * Página para vincular treinos específicos aos alunos
  */
 
-require_once '../config.php';
-require_once '../database.php';
-// Check session is handled by config.php
-require_once '../includes/qr-generator.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/qr-generator.php';
 
-// Verificar se o usuário é professor ou admin
-if (!isset($_SESSION['user_type']) || ($_SESSION['user_type'] !== 'professor' && $_SESSION['user_type'] !== 'admin')) {
-    header('Location: ' . APP_URL . '/login.php');
+// A verificação de login já é feita em auth.php.
+// Agora, verificamos a permissão específica para esta página.
+if (!hasPermission('professor')) {
+    // Redireciona se não for professor ou admin
+    header('Location: ' . APP_URL . '/index.php?error=permission_denied');
     exit;
 }
 
@@ -88,41 +88,40 @@ $alunos = $db->fetchAll($sql_alunos);
 $sql_treinos = "SELECT id, nome, tipo_treino, nivel_dificuldade, duracao_estimada FROM treinos WHERE professor_id = ? AND ativo = 1 ORDER BY nome";
 $treinos = $db->fetchAll($sql_treinos, [$professor_id]);
 
-// Buscar associações existentes
-$sql_associacoes = "
-    SELECT at.*, a.nome as aluno_nome, a.email as aluno_email,
-           t.nome as treino_nome, t.tipo_treino, t.nivel_dificuldade,
-           (SELECT COUNT(*) FROM treino_execucoes te WHERE te.aluno_treino_id = at.id) as total_execucoes
-    FROM aluno_treinos at
-    JOIN alunos a ON at.aluno_id = a.id
-    JOIN treinos t ON at.treino_id = t.id
-    WHERE at.professor_id = ?
-    ORDER BY at.created_at DESC
-";
-$associacoes = $db->fetchAll($sql_associacoes, [$professor_id]);
-
 // Filtros
 $filtro_status = $_GET['status'] ?? '';
 $filtro_aluno = $_GET['aluno'] ?? '';
 $filtro_treino = $_GET['treino'] ?? '';
 
+// Buscar associações existentes com filtros dinâmicos
+$sql_associacoes = "
+    SELECT at.*, a.nome as aluno_nome, a.email as aluno_email,
+           t.nome as treino_nome, t.tipo_treino, t.nivel_dificuldade,
+           (SELECT COUNT(*) FROM execucoes_treino te WHERE te.aluno_treino_id = at.id) as total_execucoes
+    FROM aluno_treinos at
+    JOIN alunos a ON at.aluno_id = a.id
+    JOIN treinos t ON at.treino_id = t.id
+    WHERE at.professor_id = ?
+";
+$params_assoc = [$professor_id];
+
 if ($filtro_status) {
-    $associacoes = array_filter($associacoes, function($a) use ($filtro_status) {
-        return $a['status'] === $filtro_status;
-    });
+    $sql_associacoes .= " AND at.status = ?";
+    $params_assoc[] = $filtro_status;
 }
 
 if ($filtro_aluno) {
-    $associacoes = array_filter($associacoes, function($a) use ($filtro_aluno) {
-        return $a['aluno_id'] == $filtro_aluno;
-    });
+    $sql_associacoes .= " AND at.aluno_id = ?";
+    $params_assoc[] = $filtro_aluno;
 }
 
 if ($filtro_treino) {
-    $associacoes = array_filter($associacoes, function($a) use ($filtro_treino) {
-        return $a['treino_id'] == $filtro_treino;
-    });
+    $sql_associacoes .= " AND at.treino_id = ?";
+    $params_assoc[] = $filtro_treino;
 }
+
+$sql_associacoes .= " ORDER BY at.created_at DESC";
+$associacoes = $db->fetchAll($sql_associacoes, $params_assoc);
 
 // Estatísticas
 $stats = [

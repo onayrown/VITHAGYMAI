@@ -5,9 +5,9 @@
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">                <div>
                     <div class="flex items-center mb-4">
-                        <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" class="h-10 w-auto max-w-10 rounded-lg mr-3 object-contain">
+                        <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="h-10 w-auto max-w-10 rounded-lg mr-3 object-contain">
                         <div>
-                            <h3 class="text-xl font-bold">SMARTBIOFIT</h3>
+                            <h3 class="text-xl font-bold">VithaGymAI</h3>
                             <p class="text-gray-400 text-sm">Avaliação Física Profissional</p>
                         </div>
                     </div>
@@ -71,7 +71,7 @@
             
             <div class="text-center">
                 <p class="text-gray-400 text-sm">
-                    © <?php echo date('Y'); ?> SMARTBIOFIT. Todos os direitos reservados.
+                    © <?php echo date('Y'); ?> VithaGymAI. Todos os direitos reservados.
                 </p>                <p class="text-gray-500 text-xs mt-2">
                     Desenvolvido com <svg class="inline w-4 h-4 text-red-500 mx-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
@@ -314,7 +314,7 @@
     <?php if (APP_DEBUG): ?>
     <!-- Enhanced Debug Console -->
     <script>
-        console.group('🚀 SMARTBIOFIT Debug Info');
+        console.group('🚀 VithaGymAI Debug Info');
         console.log('📱 App URL:', '<?php echo APP_URL; ?>');
         console.log('👤 Current User:', <?php echo $user ? json_encode(['id' => $user['id'], 'nome' => $user['nome'], 'tipo' => $user['tipo']]) : 'null'; ?>);
         console.log('📄 Current Page:', '<?php echo $currentPage; ?>');

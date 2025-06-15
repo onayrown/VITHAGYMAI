@@ -43,24 +43,34 @@ class Database {
             $stmt->execute($params);
             return $stmt;
         } catch (PDOException $e) {
-            logError("Erro na query: " . $e->getMessage() . " | SQL: " . $sql);
-            throw new Exception("Erro na execução da query");
+            $error_message = "Erro na execucao da query: " . $e->getMessage();
+            logError($error_message . " | SQL: " . $sql . " | Params: " . json_encode($params));
+            throw new Exception($error_message);
         }
     }
     
     public function fetch($sql, $params = []) {
-        $stmt = $this->query($sql, $params);
-        return $stmt->fetch();
+        try {
+            return $this->query($sql, $params)->fetch();
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
     
     public function fetchAll($sql, $params = []) {
-        $stmt = $this->query($sql, $params);
-        return $stmt->fetchAll();
+        try {
+            return $this->query($sql, $params)->fetchAll();
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
     
     public function execute($sql, $params = []) {
-        $stmt = $this->query($sql, $params);
-        return $stmt->rowCount();
+        try {
+            return $this->query($sql, $params);
+        } catch (Exception $e) {
+            throw $e;
+        }
     }
     
     public function lastInsertId() {
@@ -167,21 +177,17 @@ class Database {
             }
         }
         
-        // Insere usuário admin padrão se não existir
-        $this->createDefaultAdmin();
-    }
-    
-    private function createDefaultAdmin() {
-        $adminExists = $this->fetch("SELECT id FROM usuarios WHERE email = ? AND tipo = 'admin'", ['admin@smartbiofit.com']);
+        // Criar usuário admin padrão se não existir
+        $adminExists = $this->fetch("SELECT id FROM usuarios WHERE email = ? AND tipo = 'admin'", ['admin@vithagymai.com']);
         
         if (!$adminExists) {
-            $senha = hashPassword('admin123');
-            $this->execute("
-                INSERT INTO usuarios (nome, email, senha, tipo, ativo) 
-                VALUES (?, ?, ?, 'admin', TRUE)
-            ", ['Administrador', 'admin@smartbiofit.com', $senha]);
+            $senha = password_hash('admin123', PASSWORD_DEFAULT);
+            $this->query("
+                INSERT INTO usuarios (nome, email, senha, tipo) 
+                VALUES (?, ?, ?, 'admin')
+            ", ['Administrador', 'admin@vithagymai.com', $senha]);
             
-            logError("Usuário admin padrão criado: admin@smartbiofit.com / admin123", 'info');
+            logError("Usuário admin padrão criado: admin@vithagymai.com / admin123", 'info');
         }
     }
 }

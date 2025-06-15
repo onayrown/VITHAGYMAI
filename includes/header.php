@@ -3,54 +3,11 @@
  * SMARTBIOFIT - Header Comum
  */
 
-// Inclui configurações se não foram incluídas ainda
-if (!defined('APP_NAME')) {
-    require_once __DIR__ . '/../config.php';
-}
+// Inclui o sistema de autenticação central, que carrega config, usuário, etc.
+require_once __DIR__ . '/auth.php';
 
-// Verifica se há sessão ativa (exceto em páginas de login)
-$currentPage = basename($_SERVER['PHP_SELF']);
-$publicPages = ['login.php', 'register.php', 'reset-password.php'];
-
-if (!in_array($currentPage, $publicPages)) {
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: ' . APP_URL . '/login.php');
-        exit;
-    }
-}
-
-// Informações do usuário logado
-$user = null;
-if (isset($_SESSION['user_id'])) {
-    try {
-        $db = Database::getInstance();
-        $user = $db->fetch("SELECT * FROM usuarios WHERE id = ? AND ativo = TRUE", [$_SESSION['user_id']]);
-        
-        if (!$user) {
-            session_destroy();
-            header('Location: ' . APP_URL . '/login.php');
-            exit;
-        }
-        
-        // Atualiza último acesso
-        $db->execute("UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = ?", [$_SESSION['user_id']]);
-        
-    } catch (Exception $e) {
-        logError("Erro ao carregar dados do usuário: " . $e->getMessage());
-    }
-}
-
-// Função para verificar permissões
-function hasPermission($requiredType) {
-    global $user;
-    if (!$user) return false;
-    
-    $hierarchy = ['admin' => 3, 'professor' => 2, 'aluno' => 1];
-    $userLevel = $hierarchy[$user['tipo']] ?? 0;
-    $requiredLevel = $hierarchy[$requiredType] ?? 0;
-    
-    return $userLevel >= $requiredLevel;
-}
+// A lógica de verificação de sessão, carregamento de usuário e a função hasPermission()
+// foram movidas para o arquivo `includes/auth.php` para centralizar o controle.
 
 // Função para obter o nome da página atual
 function getCurrentPageTitle() {
@@ -61,14 +18,14 @@ function getCurrentPageTitle() {
         'register' => 'Cadastro',
         'alunos' => 'Alunos',
         'avaliacoes' => 'Avaliações',
-        'treinos' => 'Treinos',
-        'exercicios' => 'Exercícios',
+        'treinos' => 'Gerenciar Treinos',
+        'exercicios' => 'Biblioteca de Exercícios',
         'treino-alunos' => 'Treinos dos Alunos',
         'profile' => 'Perfil',
         'admin' => 'Administração'
     ];
     
-    return $titles[$page] ?? 'SMARTBIOFIT';
+    return $titles[$page] ?? 'VithaGymAI';
 }
 
 $pageTitle = getCurrentPageTitle();
@@ -195,7 +152,7 @@ $pageTitle = getCurrentPageTitle();
     <!-- Mobile Header -->
     <header class="lg:hidden bg-white border-b border-gray-200 sticky top-0 z-40">        <div class="flex items-center justify-between px-4 py-3">
             <div class="flex items-center space-x-3">
-                <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" class="h-16 w-auto max-w-16 rounded-lg object-contain">
+                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="h-16 w-auto max-w-16 rounded-lg object-contain">
                 <div>
                     <h1 class="text-lg font-bold text-gray-900"><?php echo $pageTitle; ?></h1>
                     <p class="text-xs text-gray-500"><?php echo htmlspecialchars($user['nome']); ?></p>
@@ -211,9 +168,9 @@ $pageTitle = getCurrentPageTitle();
     <!-- Desktop Sidebar -->
     <aside class="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-white border-r border-gray-200">
         <div class="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">            <div class="flex items-center flex-shrink-0 px-6">
-                <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" class="h-12 w-auto max-w-12 rounded-xl object-contain">
+                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="h-12 w-auto max-w-12 rounded-xl object-contain">
                 <div class="ml-3">
-                    <h1 class="text-xl font-bold text-gray-900">SMARTBIOFIT</h1>
+                    <h1 class="text-xl font-bold text-gray-900">VithaGymAI</h1>
                     <p class="text-sm text-gray-500">Avaliação Física</p>
                 </div>
             </div>
@@ -261,7 +218,8 @@ $pageTitle = getCurrentPageTitle();
                     </a>
 
                     <!-- Treinos Dropdown -->
-                    <div class="relative">                        <button id="treinos-dropdown" class="w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors <?php echo in_array($currentPage, ['treinos.php', 'exercicios.php', 'treino-alunos.php']) ? 'bg-cobalt-50 text-cobalt-700' : 'text-gray-700 hover:bg-gray-50'; ?>">
+                    <div class="relative">
+                        <button id="treinos-dropdown" type="button" data-collapse-toggle="treinos-submenu" class="w-full group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors <?php echo in_array($currentPage, ['treinos.php', 'exercicios.php', 'treino-alunos.php']) ? 'bg-cobalt-50 text-cobalt-700' : 'text-gray-700 hover:bg-gray-50'; ?>">
                             <svg class="mr-3 w-5 h-5 <?php echo in_array($currentPage, ['treinos.php', 'exercicios.php', 'treino-alunos.php']) ? 'text-cobalt-600' : 'text-gray-400 group-hover:text-gray-600'; ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
@@ -270,17 +228,17 @@ $pageTitle = getCurrentPageTitle();
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div id="treinos-submenu" class="hidden mt-1 space-y-1 ml-6">
+                        <div id="treinos-submenu" class="hidden mt-1 space-y-1 ml-6 bg-gray-50 rounded-lg py-1">
                             <a href="<?php echo APP_URL; ?>/pages/treinos.php" 
-                               class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50 <?php echo $currentPage === 'treinos.php' ? 'text-cobalt-700 bg-cobalt-50' : ''; ?>">
+                               class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 <?php echo $currentPage === 'treinos.php' ? 'text-cobalt-700 bg-cobalt-100' : ''; ?>">
                                 Gerenciar Treinos
                             </a>
                             <a href="<?php echo APP_URL; ?>/pages/exercicios.php" 
-                               class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50 <?php echo $currentPage === 'exercicios.php' ? 'text-cobalt-700 bg-cobalt-50' : ''; ?>">
+                               class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 <?php echo $currentPage === 'exercicios.php' ? 'text-cobalt-700 bg-cobalt-100' : ''; ?>">
                                 Biblioteca de Exercícios
                             </a>
                             <a href="<?php echo APP_URL; ?>/pages/treino-alunos.php" 
-                               class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-50 <?php echo $currentPage === 'treino-alunos.php' ? 'text-cobalt-700 bg-cobalt-50' : ''; ?>">
+                               class="block px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 <?php echo $currentPage === 'treino-alunos.php' ? 'text-cobalt-700 bg-cobalt-100' : ''; ?>">
                                 Treinos dos Alunos
                             </a>
                         </div>
@@ -346,9 +304,9 @@ $pageTitle = getCurrentPageTitle();
         <div class="fixed inset-y-0 left-0 max-w-xs w-full bg-white shadow-xl transform -translate-x-full transition-transform duration-300 ease-in-out" id="mobile-menu-panel">
             <div class="h-full flex flex-col">                <div class="flex items-center justify-between p-4 border-b border-gray-200">
                     <div class="flex items-center space-x-3">
-                        <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" class="h-12 w-auto max-w-12 rounded-lg object-contain">
+                        <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="h-12 w-auto max-w-12 rounded-lg object-contain">
                         <div>
-                            <h2 class="text-lg font-bold text-gray-900">SMARTBIOFIT</h2>
+                            <h2 class="text-lg font-bold text-gray-900">VithaGymAI</h2>
                             <p class="text-xs text-gray-500"><?php echo htmlspecialchars($user['nome']); ?></p>
                         </div>
                     </div><button id="mobile-menu-close" class="p-2 rounded-lg hover:bg-gray-100">
@@ -527,3 +485,19 @@ $pageTitle = getCurrentPageTitle();
                 </div>
             </div>
         <?php endif; ?>
+
+    <!-- Service Worker Registration -->
+    <script>
+        // Service Worker para funcionalidade PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('<?php echo APP_URL; ?>/sw.js')
+                    .then(function(registration) {
+                        console.log('VithaGymAI: ServiceWorker registrado com sucesso:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('VithaGymAI: Falha ao registrar ServiceWorker:', error);
+                    });
+            });
+        }
+    </script>

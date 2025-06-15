@@ -22,11 +22,10 @@ function logActivity($user_id, $action, $description) {
     global $db;
     try {
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
         
         $db->execute(
-            "INSERT INTO logs (usuario_id, acao, descricao, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)", 
-            [$user_id, $action, $description, $ip_address, $user_agent]
+            "INSERT INTO logs (usuario_id, acao, descricao, ip_address) VALUES (?, ?, ?, ?)", 
+            [$user_id, $action, $description, $ip_address]
         );
     } catch (Exception $e) {
         error_log("Erro ao registrar log: " . $e->getMessage());
@@ -39,12 +38,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     switch ($action) {
         case 'create':
+            // Gerar uma senha temporária segura
+            $temporary_password = bin2hex(random_bytes(8)); // 16 caracteres hex
+            $hashed_password = password_hash($temporary_password, PASSWORD_DEFAULT);
+            
+            $db->beginTransaction();
             try {
-                $sql = "INSERT INTO alunos (nome, email, telefone, data_nascimento, sexo, endereco, cep, cidade, estado, profissao, objetivo, restricoes_medicas, medicamentos, historico_lesoes, atividade_fisica_atual, professor_id, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                
-                $params = [
+                // 1. Criar a conta de usuário
+                $user_sql = "INSERT INTO usuarios (nome, email, senha, tipo, telefone, ativo) VALUES (?, ?, ?, 'aluno', ?, TRUE)";
+                $user_params = [
                     $_POST['nome'],
-                    $_POST['email'] ?: null,
+                    $_POST['email'],
+                    $hashed_password,
+                    $_POST['telefone'] ?: null
+                ];
+                $db->execute($user_sql, $user_params);
+                $new_user_id = $db->lastInsertId();
+
+                // 2. Criar o registro do aluno, vinculando ao usuário
+                $aluno_sql = "INSERT INTO alunos (usuario_id, nome, email, telefone, data_nascimento, sexo, endereco, cep, cidade, estado, profissao, objetivo, professor_id, ativo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
+                
+                $aluno_params = [
+                    $new_user_id,
+                    $_POST['nome'],
+                    $_POST['email'],
                     $_POST['telefone'] ?: null,
                     $_POST['data_nascimento'] ?: null,
                     $_POST['sexo'],
@@ -54,24 +71,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_POST['estado'] ?: null,
                     $_POST['profissao'] ?: null,
                     $_POST['objetivo'] ?: null,
-                    $_POST['restricoes_medicas'] ?: null,
-                    $_POST['medicamentos'] ?: null,
-                    $_POST['historico_lesoes'] ?: null,
-                    $_POST['atividade_fisica_atual'] ?: null,
-                    $_SESSION['user_id'],
-                    $_POST['observacoes'] ?: null
+                    $_SESSION['user_type'] === 'professor' ? $_SESSION['user_id'] : $_POST['professor_id'] // Se admin, pega do form
                 ];
                 
-                $db->execute($sql, $params);
+                $db->execute($aluno_sql, $aluno_params);
+                $new_aluno_id = $db->lastInsertId();
+                
+                // 3. Confirmar a transação
+                $db->commit();
                 
                 // Log da ação
-                logActivity($_SESSION['user_id'], 'criar_aluno', "Novo aluno '{$_POST['nome']}' cadastrado");
-                $message = 'Aluno cadastrado com sucesso!';
+                logActivity($_SESSION['user_id'], 'criar_aluno_usuario', "Novo aluno '{$_POST['nome']}' (Aluno ID: {$new_aluno_id}, Usuário ID: {$new_user_id}) cadastrado");
+                $message = 'Aluno cadastrado com sucesso! <strong>Senha temporária:</strong> ' . htmlspecialchars($temporary_password);
                 $messageType = 'success';
                 
             } catch (Exception $e) {
+                // Se algo der errado, reverte a transação
+                $db->rollBack();
                 $message = 'Erro ao cadastrar aluno: ' . $e->getMessage();
                 $messageType = 'error';
+                error_log("Erro no cadastro de aluno: " . $e->getMessage());
             }
             break;
             

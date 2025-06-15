@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpando Cache - VithaGymAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        #log {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Limpeza de Cache - VithaGymAI</h1>
+        <div class="spinner" id="spinner"></div>
+        <p id="status">Iniciando limpeza...</p>
+        
+        <div>
+            <button class="btn" onclick="clearEverything()">🔄 Limpar Tudo</button>
+            <button class="btn" onclick="goToLogin()">➡️ Ir para Login</button>
+        </div>
+        
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let logElement = document.getElementById('log');
+        let statusElement = document.getElementById('status');
+        
+        function log(message) {
+            console.log(message);
+            logElement.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateStatus(message) {
+            statusElement.textContent = message;
+            log(message);
+        }
+        
+        async function clearEverything() {
+            updateStatus('🧹 Iniciando limpeza completa...');
+            
+            // 1. Limpar Service Workers
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        log('✅ Service Worker removido: ' + registration.scope);
+                    }
+                } catch (e) {
+                    log('❌ Erro ao remover Service Workers: ' + e.message);
+                }
+            }
+            
+            // 2. Limpar todos os caches
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    for (let cacheName of cacheNames) {
+                        await caches.delete(cacheName);
+                        log('✅ Cache removido: ' + cacheName);
+                    }
+                } catch (e) {
+                    log('❌ Erro ao limpar caches: ' + e.message);
+                }
+            }
+            
+            // 3. Limpar localStorage
+            try {
+                localStorage.clear();
+                log('✅ localStorage limpo');
+            } catch (e) {
+                log('❌ Erro ao limpar localStorage: ' + e.message);
+            }
+            
+            // 4. Limpar sessionStorage
+            try {
+                sessionStorage.clear();
+                log('✅ sessionStorage limpo');
+            } catch (e) {
+                log('❌ Erro ao limpar sessionStorage: ' + e.message);
+            }
+            
+            // 5. Limpar IndexedDB (se existir)
+            if ('indexedDB' in window) {
+                try {
+                    // Tentar limpar databases conhecidos
+                    const databases = ['vithagymai', 'smartbiofit'];
+                    for (let dbName of databases) {
+                        const deleteReq = indexedDB.deleteDatabase(dbName);
+                        deleteReq.onsuccess = () => log('✅ IndexedDB removido: ' + dbName);
+                        deleteReq.onerror = () => log('⚠️ IndexedDB não encontrado: ' + dbName);
+                    }
+                } catch (e) {
+                    log('❌ Erro ao limpar IndexedDB: ' + e.message);
+                }
+            }
+            
+            updateStatus('✅ Limpeza concluída! Você pode ir para o login agora.');
+            document.getElementById('spinner').style.display = 'none';
+        }
+        
+        function goToLogin() {
+            // Força uma navegação limpa
+            window.location.href = '/login.php?t=' + Date.now();
+        }
+        
+        // Executar limpeza automaticamente ao carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(clearEverything, 1000);
+        });
+    </script>
+</body>
+</html> 

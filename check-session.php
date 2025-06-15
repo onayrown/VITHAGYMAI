@@ -3,7 +3,7 @@
  * SMARTBIOFIT - Verificação de Sessão (AJAX)
  */
 
-require_once '../config.php';
+require_once 'config.php';
 
 header('Content-Type: application/json');
 
@@ -15,7 +15,7 @@ $response = [
 
 if (isset($_SESSION['user_id'])) {
     try {
-        require_once '../database.php';
+        require_once 'database.php';
         $db = Database::getInstance();
         $user = $db->fetch("SELECT id, nome, email, tipo FROM usuarios WHERE id = ? AND ativo = TRUE", [$_SESSION['user_id']]);
         

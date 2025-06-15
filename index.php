@@ -1,7 +1,7 @@
 <?php
 /**
- * SMARTBIOFIT - Dashboard Principal
- * Premium Mobile-First Dashboard
+ * VithaGymAI - Dashboard Principal
+ * Painel de controle principal do sistema
  */
 
 require_once 'config.php';
@@ -25,21 +25,39 @@ try {
     error_log("User ID: " . ($_SESSION['user_id'] ?? 'N/A') . ", User Type: " . ($user['tipo'] ?? 'N/A'));
 
     if (hasPermission('professor')) {
-        // Para professores e admins
-        $stats['total_alunos'] = $db->fetch("SELECT COUNT(*) as total FROM usuarios WHERE tipo = \'aluno\' AND ativo = TRUE")['total'];
+        // Para professores e admins - corrigindo as queries para usar as tabelas corretas
+        if ($_SESSION['user_type'] === 'admin') {
+            // Admin vê todos os alunos
+            $stats['total_alunos'] = $db->fetch("SELECT COUNT(*) as total FROM alunos WHERE ativo = TRUE")['total'];
+        } else {
+            // Professor vê apenas seus alunos
+            $stats['total_alunos'] = $db->fetch("SELECT COUNT(*) as total FROM alunos WHERE professor_id = ? AND ativo = TRUE", [$_SESSION['user_id']])['total'];
+        }
         error_log("Total de Alunos Query Result: " . $stats['total_alunos']);
 
-        $stats['avaliacoes_mes'] = $db->fetch("SELECT COUNT(*) as total FROM logs WHERE acao LIKE \'%avaliacao%\' AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)")['total'];
+        // Avaliações do mês - corrigindo para usar a tabela avaliacoes
+        if ($_SESSION['user_type'] === 'admin') {
+            $stats['avaliacoes_mes'] = $db->fetch("SELECT COUNT(*) as total FROM avaliacoes WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)")['total'];
+        } else {
+            $stats['avaliacoes_mes'] = $db->fetch("SELECT COUNT(*) as total FROM avaliacoes WHERE professor_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)", [$_SESSION['user_id']])['total'];
+        }
         error_log("Avaliações no Mês Query Result: " . $stats['avaliacoes_mes']);
 
-        $stats['treinos_ativos'] = 0; // Será implementado no Milestone 4
-        $stats['usuarios_online'] = $db->fetch("SELECT COUNT(*) as total FROM usuarios WHERE ultimo_acesso >= DATE_SUB(NOW(), INTERVAL 15 MINUTE) AND ativo = TRUE")['total'];
+        // Treinos ativos - agora implementado corretamente
+        if ($_SESSION['user_type'] === 'admin') {
+            $stats['treinos_ativos'] = $db->fetch("SELECT COUNT(*) as total FROM treinos WHERE ativo = TRUE")['total'];
+        } else {
+            $stats['treinos_ativos'] = $db->fetch("SELECT COUNT(*) as total FROM treinos WHERE professor_id = ? AND ativo = TRUE", [$_SESSION['user_id']])['total'];
+        }
+        
+        // Usuários online - corrigindo para verificar último login
+        $stats['usuarios_online'] = $db->fetch("SELECT COUNT(*) as total FROM usuarios WHERE updated_at >= DATE_SUB(NOW(), INTERVAL 15 MINUTE) AND ativo = TRUE")['total'];
     } else {
         // Para alunos - estatísticas pessoais
-        $stats['minhas_avaliacoes'] = $db->fetch("SELECT COUNT(*) as total FROM logs WHERE usuario_id = ? AND acao LIKE '%avaliacao%'", [$user['id']])['total'];
-        $stats['meus_treinos'] = 0; // Será implementado no Milestone 4
-        $stats['dias_cadastrado'] = $db->fetch("SELECT DATEDIFF(NOW(), created_at) as dias FROM usuarios WHERE id = ?", [$user['id']])['dias'];
-        $stats['ultimo_treino'] = 0; // Será implementado no Milestone 4
+        $stats['minhas_avaliacoes'] = $db->fetch("SELECT COUNT(*) as total FROM avaliacoes WHERE aluno_id = ?", [$_SESSION['user_id']])['total'];
+        $stats['meus_treinos'] = $db->fetch("SELECT COUNT(*) as total FROM aluno_treinos WHERE aluno_id = ? AND ativo = TRUE", [$_SESSION['user_id']])['total'];
+        $stats['dias_cadastrado'] = $db->fetch("SELECT DATEDIFF(NOW(), created_at) as dias FROM usuarios WHERE id = ?", [$_SESSION['user_id']])['dias'];
+        $stats['ultimo_treino'] = 0; // Será implementado no Milestone 5
     }
     
 } catch (Exception $e) {
@@ -50,22 +68,22 @@ try {
 $atividades_recentes = [];
 try {
     if (hasPermission('professor')) {
-        // Para instrutores: mostrar apenas as últimas 5 atividades dos alunos
+        // Para professores e admins: mostrar as últimas 5 atividades de todos (exceto logins falhos)
         $atividades_recentes = $db->fetchAll("
             SELECT l.*, u.nome as usuario_nome 
             FROM logs l 
             LEFT JOIN usuarios u ON l.usuario_id = u.id 
-            WHERE u.tipo = 'aluno'
+            WHERE l.acao != 'login_failed' AND l.usuario_id != ?
             ORDER BY l.created_at DESC 
             LIMIT 5
-        ");
-    } else {
+        ", [$_SESSION['user_id']]);
+    } else { // Para alunos
         $atividades_recentes = $db->fetchAll("
             SELECT * FROM logs 
             WHERE usuario_id = ? 
             ORDER BY created_at DESC 
             LIMIT 10
-        ", [$user['id']]);
+        ", [$_SESSION['user_id']]);
     }
 } catch (Exception $e) {
     logError("Erro ao carregar atividades recentes: " . $e->getMessage());
@@ -79,9 +97,9 @@ try {
     <div class="hidden lg:block bg-gradient-to-r from-blue-600 via-blue-700 to-green-600 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center" data-aos="fade-up">
-                <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" class="h-16 w-auto mx-auto mb-6">
+                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="h-16 w-auto mx-auto mb-6">
                 <h1 class="text-4xl font-bold mb-4">
-                    Bem-vindo, <?php echo htmlspecialchars($user['nome']); ?>! 👋
+                    Bem-vindo, <?php echo htmlspecialchars($_SESSION['user_name']); ?>! 👋
                 </h1>
                 <p class="text-xl text-blue-100 max-w-2xl mx-auto">
                     <?php if (hasPermission('professor')): ?>

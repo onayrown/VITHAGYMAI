@@ -1,7 +1,7 @@
 <?php
 /**
- * SMARTBIOFIT - Inicialização do Banco de Dados
- * Execute este arquivo uma vez para criar as tabelas e dados iniciais
+ * VithaGymAI - Inicialização do Banco de Dados
+ * Script de configuração inicial do sistema
  */
 
 require_once 'config.php';
@@ -13,12 +13,12 @@ require_once 'database.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setup - SMARTBIOFIT</title>
+    <title>Setup - VithaGymAI</title>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/styles.css">
 </head>
 <body style="background-color: var(--cinza-claro);">
     <div class="container" style="max-width: 600px; margin-top: 2rem;">        <div class="card">            <div class="card-header text-center">
-                <img src="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png" alt="SMARTBIOFIT" style="height: 60px;">
+                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" style="height: 60px;">
                 <h1 class="h3 mt-2 text-primary">Setup do Sistema</h1>
                 <p class="text-muted">Inicialização do Sistema</p>
             </div>
@@ -37,7 +37,7 @@ require_once 'database.php';
                     echo "<div class='alert alert-success'>✅ Tabelas criadas/verificadas</div>";
                     
                     // Verifica se admin já existe
-                    $admin = $db->fetch("SELECT * FROM usuarios WHERE email = 'admin@smartbiofit.com'");
+                    $admin = $db->fetch("SELECT * FROM usuarios WHERE email = 'admin@vithagymai.com'");
                     if ($admin) {
                         echo "<div class='alert alert-warning'>⚠️ Usuário admin já existe</div>";
                     } else {
@@ -48,7 +48,7 @@ require_once 'database.php';
                     echo "<h5>🎉 Setup concluído com sucesso!</h5>";
                     echo "<p><strong>Dados de acesso:</strong></p>";
                     echo "<ul>";
-                    echo "<li><strong>Email:</strong> admin@smartbiofit.com</li>";
+                    echo "<li><strong>Email:</strong> admin@vithagymai.com</li>";
                     echo "<li><strong>Senha:</strong> admin123</li>";
                     echo "<li><strong>Tipo:</strong> Administrador</li>";
                     echo "</ul>";

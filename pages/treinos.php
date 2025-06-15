@@ -4,13 +4,13 @@
  * Criação e gerenciamento de treinos
  */
 
-require_once '../config.php';
-require_once '../database.php';
-// Check session is handled by config.php
+require_once __DIR__ . '/../includes/auth.php';
 
-// Verificar se o usuário é professor ou admin
-if (!isset($_SESSION['user_type']) || ($_SESSION['user_type'] !== 'professor' && $_SESSION['user_type'] !== 'admin')) {
-    header('Location: ' . APP_URL . '/login.php');
+// A verificação de login já é feita em auth.php.
+// Agora, verificamos a permissão específica para esta página.
+if (!hasPermission('professor')) {
+    // Redireciona se não for professor ou admin
+    header('Location: ' . APP_URL . '/index.php?error=permission_denied');
     exit;
 }
 
@@ -120,32 +120,37 @@ $search = $_GET['search'] ?? '';
 $tipo_filter = $_GET['tipo'] ?? '';
 $nivel_filter = $_GET['nivel'] ?? '';
 
-$where_conditions = ["professor_id = ?"];
-$params = [$professor_id];
+// Restaura a query complexa e correta que agora deve funcionar
+$sql = "SELECT t.*, 
+        (SELECT COUNT(*) FROM treino_exercicios te WHERE te.treino_id = t.id) as total_exercicios,
+        (SELECT COUNT(*) FROM aluno_treinos at WHERE at.treino_id = t.id AND at.status = 'ativo') as alunos_ativos
+        FROM treinos t 
+        WHERE 1=1";
+
+$params = [];
+
+// Adiciona a condição obrigatória do professor
+$sql .= " AND t.professor_id = ?";
+$params[] = $professor_id;
 
 if (!empty($search)) {
-    $where_conditions[] = "(nome LIKE ? OR descricao LIKE ?)";
+    $sql .= " AND (t.nome LIKE ? OR t.descricao LIKE ?)";
     $params[] = "%$search%";
     $params[] = "%$search%";
 }
 
 if (!empty($tipo_filter)) {
-    $where_conditions[] = "tipo_treino = ?";
+    $sql .= " AND t.tipo_treino = ?";
     $params[] = $tipo_filter;
 }
 
 if (!empty($nivel_filter)) {
-    $where_conditions[] = "nivel_dificuldade = ?";
+    $sql .= " AND t.nivel_dificuldade = ?";
     $params[] = $nivel_filter;
 }
 
-$where_clause = implode(" AND ", $where_conditions);
-$sql = "SELECT t.*, 
-        (SELECT COUNT(*) FROM treino_exercicios te WHERE te.treino_id = t.id) as total_exercicios,
-        (SELECT COUNT(*) FROM aluno_treinos at WHERE at.treino_id = t.id AND at.status = 'ativo') as alunos_ativos
-        FROM treinos t 
-        WHERE $where_clause 
-        ORDER BY t.template DESC, t.created_at DESC";
+$sql .= " ORDER BY t.template DESC, t.created_at DESC";
+
 $treinos = $db->fetchAll($sql, $params);
 
 // Buscar exercícios disponíveis

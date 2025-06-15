@@ -1,8 +1,13 @@
 <?php
 /**
- * SMARTBIOFIT - Configurações Principais
+ * VithaGymAI - Configurações Principais
  * Aplicativo Web de Avaliação Física Profissional
  */
+
+// **INÍCIO DO BUFFER DE SAÍDA**
+// Isso captura qualquer saída (como espaços em branco acidentais) antes que os
+// cabeçalhos da sessão sejam enviados. É uma solução robusta para erros "headers already sent".
+ob_start();
 
 // Carrega variáveis de ambiente
 function loadEnv($file) {
@@ -26,10 +31,23 @@ loadEnv(__DIR__ . '/.env');
 // Configurações de Timezone
 date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/Sao_Paulo');
 
-// Configurações de Sessão
+// IMPORTANTE: Configurações de Sessão ANTES de qualquer output/header
 if (session_status() === PHP_SESSION_NONE) {
+    // Define um nome de sessão único para evitar conflitos
+    session_name(strtoupper(str_replace(' ', '_', $_ENV['APP_NAME'] ?? 'VITHAGYMAI')) . '_SESS');
+    
+    // Configurações de sessão mais robustas
+    ini_set('session.cookie_httponly', 1);
+    ini_set('session.use_strict_mode', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+    
     session_start();
 }
+
+// **FIM DO BUFFER DE SAÍDA**
+// O buffer pode ser limpo e desativado no final do script (geralmente no footer.php)
+// com `ob_end_flush();` se necessário, mas para este caso, o PHP o fará
+// automaticamente no final da execução.
 
 // Adicionar aliases para manter compatibilidade com código antigo
 if (!empty($_SESSION['user_tipo']) && !isset($_SESSION['role'])) {
@@ -183,14 +201,17 @@ function generateToken($length = 32) {
     return bin2hex(random_bytes($length));
 }
 
-// Headers de segurança
-header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: DENY');
-header('X-XSS-Protection: 1; mode=block');
-header('Referrer-Policy: strict-origin-when-cross-origin');
+// IMPORTANTE: Headers de segurança APÓS configuração de sessão
+// Só enviar headers se não estivermos em linha de comando
+if (php_sapi_name() !== 'cli') {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
 
-if (!APP_DEBUG) {
-    header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    if (!APP_DEBUG) {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
 }
 
 // Incluir classe Database para compatibilidade

@@ -1,11 +1,11 @@
 /**
- * SMARTBIOFIT - JavaScript Base (Fixed)
+ * VithaGymAI - JavaScript Base (Fixed)
  * Funcionalidades comuns e utilitários
  */
 
 // Configuração global
 const SMARTBIOFIT = {
-    apiUrl: window.location.origin + '/smartbiofit',
+    apiUrl: window.location.origin,
     debug: false,
     
     // Configurações de validação
@@ -117,10 +117,14 @@ const SessionManager = {
     
     logout: async () => {
         try {
-            await Utils.ajax(`${SMARTBIOFIT.apiUrl}/logout.php`, { method: 'POST' });
-            window.location.href = `${SMARTBIOFIT.apiUrl}/login.php`;
+            console.log('SessionManager: Iniciando logout...');
+            
+            // Método mais simples: redirecionar diretamente para logout.php
+            window.location.href = `${SMARTBIOFIT.apiUrl}/logout.php`;
+            
         } catch (error) {
             console.error('Erro no logout:', error);
+            // Fallback: redirecionar para login
             window.location.href = `${SMARTBIOFIT.apiUrl}/login.php`;
         }
     }

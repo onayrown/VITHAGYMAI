@@ -1,6 +1,6 @@
 <?php
 /**
- * SMARTBIOFIT - Logout
+ * VithaGymAI - Logout
  */
 
 require_once 'config.php';

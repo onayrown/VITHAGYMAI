@@ -1,7 +1,7 @@
 <?php
 /**
- * SMARTBIOFIT - Visualização Mobile do Treino
- * Página otimizada para alunos visualizarem seus treinos
+ * VithaGymAI - Visualização Mobile do Treino
+ * Interface otimizada para visualização de treinos em dispositivos móveis
  */
 
 require_once 'config.php';
@@ -36,7 +36,7 @@ if (!$hash) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $treino_data ? htmlspecialchars($treino_data['treino']['nome']) . ' - SMARTBIOFIT' : 'SMARTBIOFIT - Treino' ?></title>
+    <title><?= $treino_data ? htmlspecialchars($treino_data['treino']['nome']) . ' - VithaGymAI' : 'VithaGymAI - Treino' ?></title>
       <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -267,7 +267,7 @@ if (!$hash) {
     <!-- Página de Erro -->
     <div class="workout-container">
         <div class="workout-header">
-            <h1><i class="fas fa-dumbbell"></i> SMARTBIOFIT</h1>
+            <h1><i class="fas fa-dumbbell"></i> VithaGymAI</h1>
         </div>
         <div class="error-container">
             <i class="fas fa-exclamation-triangle error-icon"></i>
@@ -580,7 +580,7 @@ if (!$hash) {
             // Verificar se o navegador suporta Web Share API
             if (navigator.share) {
                 navigator.share({
-                    title: `SMARTBIOFIT - ${treinoNome}`,
+                    title: `VithaGymAI - ${treinoNome}`,
                     text: `Meu treino personalizado: ${treinoNome}`,
                     url: url
                 }).catch(console.error);
@@ -673,13 +673,13 @@ if (!$hash) {
         }
         
         function compartilharWhatsApp(url, treinoNome, professorNome) {
-            const mensagem = `🏋️‍♂️ *SMARTBIOFIT - Meu Treino*\n\n📋 *Treino:* ${treinoNome}\n👨‍🏫 *Instrutor:* ${professorNome}\n\n🔗 *Acesse:* ${url}\n\n💪 _Vamos treinar juntos!_`;
+            const mensagem = `🏋️‍♂️ *VithaGymAI - Meu Treino*\n\n📋 *Treino:* ${treinoNome}\n👨‍🏫 *Instrutor:* ${professorNome}\n\n🔗 *Acesse:* ${url}\n\n💪 _Vamos treinar juntos!_`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
             window.open(whatsappUrl, '_blank');
         }
         
         function compartilharTelegram(url, treinoNome) {
-            const mensagem = `🏋️‍♂️ SMARTBIOFIT - ${treinoNome}\n\n${url}`;
+            const mensagem = `🏋️‍♂️ VithaGymAI - ${treinoNome}\n\n${url}`;
             const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(mensagem)}`;
             window.open(telegramUrl, '_blank');
         }
