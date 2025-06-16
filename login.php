@@ -188,7 +188,7 @@ include 'includes/header.php';
         <div class="mx-auto w-full max-w-md">
             <!-- Logo e Título -->
             <div class="text-center mb-6">
-                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="mx-auto h-16 w-auto mb-4">
+                <img src="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png" alt="VithaGymAI" class="mx-auto h-32 w-auto mb-4">
                 <h2 class="text-center text-3xl font-extrabold text-gray-900">Entrar</h2>
                 <p class="mt-2 text-sm text-gray-600">Acesse o VithaGymAI</p>
             </div>

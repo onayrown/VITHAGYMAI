@@ -164,6 +164,181 @@ class Database {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     FOREIGN KEY (professor_id) REFERENCES usuarios(id) ON DELETE RESTRICT
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de agendamentos de avaliações
+            'agendamentos_avaliacoes' => "
+                CREATE TABLE IF NOT EXISTS agendamentos_avaliacoes (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    aluno_id INT NOT NULL,
+                    professor_id INT NOT NULL,
+                    data_agendamento DATETIME NOT NULL,
+                    tipo_avaliacao VARCHAR(50),
+                    status ENUM('agendada', 'confirmada', 'cancelada', 'realizada') DEFAULT 'agendada',
+                    observacoes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (professor_id) REFERENCES usuarios(id) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de treinos
+            'treinos' => "
+                CREATE TABLE IF NOT EXISTS treinos (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nome VARCHAR(100) NOT NULL,
+                    descricao TEXT,
+                    aluno_id INT NOT NULL,
+                    usuario_id INT NOT NULL,
+                    share_hash VARCHAR(100) UNIQUE,
+                    ativo BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de exercícios
+            'exercicios' => "
+                CREATE TABLE IF NOT EXISTS exercicios (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nome VARCHAR(100) NOT NULL,
+                    descricao TEXT,
+                    grupo_muscular VARCHAR(100),
+                    categoria VARCHAR(50),
+                    equipamento VARCHAR(100),
+                    dificuldade ENUM('iniciante', 'intermediario', 'avancado') DEFAULT 'iniciante',
+                    instrucoes TEXT,
+                    video_url VARCHAR(255),
+                    imagem_url VARCHAR(255),
+                    ativo BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de exercícios do treino
+            'treino_exercicios' => "
+                CREATE TABLE IF NOT EXISTS treino_exercicios (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    treino_id INT NOT NULL,
+                    exercicio_id INT NOT NULL,
+                    ordem INT NOT NULL DEFAULT 1,
+                    series INT,
+                    repeticoes VARCHAR(50),
+                    peso VARCHAR(50),
+                    descanso VARCHAR(50),
+                    observacoes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (treino_id) REFERENCES treinos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (exercicio_id) REFERENCES exercicios(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de execuções de treino
+            'execucoes_treino' => "
+                CREATE TABLE IF NOT EXISTS execucoes_treino (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    treino_id INT NOT NULL,
+                    aluno_id INT NOT NULL,
+                    data_execucao DATETIME NOT NULL,
+                    tempo_total INT, -- em minutos
+                    observacoes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (treino_id) REFERENCES treinos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de avaliações físicas
+            'avaliacoes_fisicas' => "
+                CREATE TABLE IF NOT EXISTS avaliacoes_fisicas (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    aluno_id INT NOT NULL,
+                    professor_id INT NOT NULL,
+                    data_avaliacao DATE NOT NULL,
+                    peso DECIMAL(5,2),
+                    altura DECIMAL(3,2),
+                    imc DECIMAL(4,2),
+                    percentual_gordura DECIMAL(4,2),
+                    massa_muscular DECIMAL(5,2),
+                    pressao_arterial VARCHAR(20),
+                    frequencia_cardiaca INT,
+                    observacoes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (professor_id) REFERENCES usuarios(id) ON DELETE SET NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de medidas corporais
+            'medidas_corporais' => "
+                CREATE TABLE IF NOT EXISTS medidas_corporais (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    avaliacao_id INT NOT NULL,
+                    pescoco DECIMAL(5,2),
+                    ombro DECIMAL(5,2),
+                    torax DECIMAL(5,2),
+                    braco_direito DECIMAL(5,2),
+                    braco_esquerdo DECIMAL(5,2),
+                    antebraco_direito DECIMAL(5,2),
+                    antebraco_esquerdo DECIMAL(5,2),
+                    cintura DECIMAL(5,2),
+                    quadril DECIMAL(5,2),
+                    coxa_direita DECIMAL(5,2),
+                    coxa_esquerda DECIMAL(5,2),
+                    panturrilha_direita DECIMAL(5,2),
+                    panturrilha_esquerda DECIMAL(5,2),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (avaliacao_id) REFERENCES avaliacoes_fisicas(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de notificações
+            'notificacoes' => "
+                CREATE TABLE IF NOT EXISTS notificacoes (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    aluno_id INT NOT NULL,
+                    titulo VARCHAR(255) NOT NULL,
+                    mensagem TEXT NOT NULL,
+                    tipo ENUM('info', 'aviso', 'sucesso', 'erro') DEFAULT 'info',
+                    visualizada BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+            
+            // Tabela de VO2 Max
+            'vo2max' => "
+                CREATE TABLE IF NOT EXISTS vo2max (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    avaliacao_id INT NOT NULL,
+                    protocolo VARCHAR(100),
+                    carga VARCHAR(50),
+                    tempo VARCHAR(50),
+                    vo2_max_resultado DECIMAL(5,2),
+                    classificacao VARCHAR(50),
+                    observacoes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (avaliacao_id) REFERENCES avaliacoes_fisicas(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ",
+
+            // Tabela de Avaliação Postural
+            'avaliacao_postural' => "
+                CREATE TABLE IF NOT EXISTS avaliacao_postural (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    avaliacao_id INT NOT NULL,
+                    vista_anterior TEXT,
+                    vista_lateral TEXT,
+                    vista_posterior TEXT,
+                    observacoes_gerais TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (avaliacao_id) REFERENCES avaliacoes_fisicas(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             "
         ];
         

@@ -35,13 +35,21 @@ $pageTitle = getCurrentPageTitle();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="SMARTBIOFIT - Aplicativo Web de Avaliação Física Profissional">
-    <meta name="author" content="SMARTBIOFIT">
+    <meta name="description" content="VithaGymAI - Aplicativo Web de Avaliação Física Profissional">
+    <meta name="author" content="VithaGymAI">
     <meta name="robots" content="noindex, nofollow">
     <title><?php echo $pageTitle; ?> - <?php echo APP_NAME; ?></title>
     
+    <!-- SEO e Social Media (Open Graph) -->
+    <meta property="og:title" content="<?php echo $pageTitle; ?> - VithaGymAI">
+    <meta property="og:description" content="Acesse a plataforma VithaGymAI para avaliação física e prescrição de treinos.">
+    <meta property="og:image" content="<?php echo APP_URL; ?>/assets/images/logo-vithagymai-og.png">
+    <meta property="og:url" content="<?php echo APP_URL; ?>">
+    <meta property="og:type" content="website">
+
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="<?php echo APP_URL; ?>/assets/images/logo-smartbiofit.png">
+    <link rel="icon" type="image/png" href="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png">
+    <link rel="apple-touch-icon" href="<?php echo APP_URL; ?>/assets/images/logo-vithagymai.png">
       <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -125,14 +133,14 @@ $pageTitle = getCurrentPageTitle();
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
       <!-- Custom Premium Styles -->
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/ios-premium.css">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/smartbiofit-premium.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/vithagym-premium.css">
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/treino-mobile-style.css">
     
     <!-- Meta tags para PWA -->
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="SMARTBIOFIT">
+    <meta name="apple-mobile-web-app-title" content="VithaGymAI">
       <!-- Preload critical resources -->
     <link rel="preload" href="<?php echo APP_URL; ?>/assets/js/app.js" as="script">
 </head>
