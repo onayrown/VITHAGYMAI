@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # Serviço da Aplicação PHP
+  vithagymai:
+    image: onayrown/vithagym-web:1.2
+    hostname: "{{.Service.Name}}.{{.Task.Slot}}"
+    volumes:
+      # Use /srv/vithagym por convenção, mas /vithagym funciona se você preferir.
+      # Apenas garanta que o diretório exista no seu servidor host.
+      - /srv/vithagym:/var/www/html
+    environment:
+      - APP_URL=https://app.vithagym.com
+      - DB_HOST=db
+      - DB_NAME=vithagymai
+      - DB_USER=vithagym_user
+      - DB_PASS=vithagymai123 # <-- Lembre-se de criar o secret para o DB com essa mesma senha
+    networks:
+      - vithagym-net
+      - network_swarm_public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_swarm_public"
+        # Roteador para o app principal
+        - "traefik.http.routers.vithagymai.rule=Host(`app.vithagym.com`)"
+        - "traefik.http.routers.vithagymai.entrypoints=websecure"
+        - "traefik.http.routers.vithagymai.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.vithagymai.service=vithagymai-svc" # Aponta para o serviço Traefik abaixo
+        # Serviço Traefik que aponta para o contêiner
+        - "traefik.http.services.vithagymai-svc.loadbalancer.server.port=80"
+
+  # Serviço do Banco de Dados
+  db:
+    image: mysql:8.0
+    hostname: "{{.Service.Name}}.{{.Task.Slot}}"
+    volumes:
+      - vithagym_db_data:/var/lib/mysql
+    secrets:
+      - vithagym_db_root_password
+      - vithagym_db_password
+    environment:
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/vithagym_db_root_password
+      MYSQL_DATABASE: vithagymai
+      MYSQL_USER: vithagym_user
+      MYSQL_PASSWORD_FILE: /run/secrets/vithagym_db_password
+    networks:
+      - vithagym-net
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+  # Serviço do phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    hostname: "{{.Service.Name}}.{{.Task.Slot}}"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    networks:
+      - vithagym-net
+      - network_swarm_public
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=network_swarm_public"
+        # Roteador para o phpMyAdmin
+        - "traefik.http.routers.vithagymai-pma.rule=Host(`db.vithagym.com`)"
+        - "traefik.http.routers.vithagymai-pma.entrypoints=websecure"
+        - "traefik.http.routers.vithagymai-pma.tls.certresolver=letsencryptresolver"
+        - "traefik.http.routers.vithagymai-pma.service=vithagymai-pma-svc" # Aponta para o serviço Traefik
+        # Serviço Traefik que aponta para o contêiner
+        - "traefik.http.services.vithagymai-pma-svc.loadbalancer.server.port=80"
+
+# Configurações de alto nível
+volumes:
+  vithagym_db_data: {}
+
+networks:
+  vithagym-net:
+    driver: overlay
+  network_swarm_public:
+    external: true
+
+secrets:
+  vithagym_db_password:
+    external: true
+  vithagym_db_root_password:
+    external: true

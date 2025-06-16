@@ -25,8 +25,26 @@ function loadEnv($file) {
     }
 }
 
-// Carrega configurações do .env
-loadEnv(__DIR__ . '/.env');
+// Lógica de carregamento de ambiente aprimorada
+// Em um ambiente de produção (como Docker Swarm), as variáveis de ambiente já
+// devem existir. Se não existirem, tentamos carregar do arquivo .env para
+// compatibilidade com o desenvolvimento local.
+if (getenv('DB_HOST')) {
+    // As variáveis de ambiente já existem, apenas as mapeia para $_ENV por consistência.
+    $env_vars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS', 'APP_NAME', 'APP_URL', 'APP_ENV', 'APP_DEBUG', 'APP_TIMEZONE', 'JWT_SECRET', 'SESSION_LIFETIME', 'HASH_ALGO', 'UPLOAD_MAX_SIZE', 'UPLOAD_ALLOWED_TYPES', 'LOG_PATH'];
+    foreach ($env_vars as $var) {
+        $value = getenv($var);
+        if ($value !== false) {
+            $_ENV[$var] = $value;
+        }
+    }
+} else if (file_exists(__DIR__ . '/.env')) {
+    // Carrega do arquivo .env se as variáveis de ambiente não estiverem definidas
+    loadEnv(__DIR__ . '/.env');
+} else {
+    // Se nem as variáveis de ambiente nem o .env existem, lança um erro.
+    die('Erro crítico de configuração: Nem variáveis de ambiente nem o arquivo .env foram encontrados.');
+}
 
 // Configurações de Timezone
 date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/Sao_Paulo');
